@@ -132,12 +132,12 @@ trait Huffman extends HuffmanInterface {
       if (trees.isEmpty) List[CodeTree](f)
       trees.head match {
         case Fork(_, _, _, w) => {
-          if (f.weight <= w) return f :: trees
-          else return insert(f, trees.tail)
+          if (f.weight <= w) f :: trees
+          else insert(f, trees.tail)
         }
         case Leaf(_, w) => {
-          if (f.weight <= w) return f :: trees
-          else return insert(f, trees.tail)
+          if (f.weight <= w) f :: trees
+          else insert(f, trees.tail)
         }
 
       }
@@ -163,7 +163,10 @@ trait Huffman extends HuffmanInterface {
    * In such an invocation, `until` should call the two functions until the list of
    * code trees contains only one single tree, and then return that singleton list.
    */
-  def until(done: List[CodeTree] => Boolean, merge: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] = ???
+  def until(done: List[CodeTree] => Boolean, merge: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] = {
+    if(done(trees)) List(trees.head)
+    else until(done,merge)(merge(trees))
+  }
 
   /**
    * This function creates a code tree which is optimal to encode the text `chars`.
@@ -171,7 +174,11 @@ trait Huffman extends HuffmanInterface {
    * The parameter `chars` is an arbitrary text. This function extracts the character
    * frequencies from that text and creates a code tree based on them.
    */
-  def createCodeTree(chars: List[Char]): CodeTree = ???
+  def createCodeTree(chars: List[Char]): CodeTree = {
+    val freqs = times(chars)
+    val leaves = makeOrderedLeafList(freqs)
+    until(singleton, combine)(leaves).head
+  }
 
 
   // Part 3: Decoding
@@ -182,7 +189,14 @@ trait Huffman extends HuffmanInterface {
    * This function decodes the bit sequence `bits` using the code tree `tree` and returns
    * the resulting list of characters.
    */
-  def decode(tree: CodeTree, bits: List[Bit]): List[Char] = ???
+  def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
+    tree match {
+      case Leaf(c,_) => c
+    }
+  }
+
+
+
 
   /**
    * A Huffman coding tree for the French language.
